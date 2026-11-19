@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#0c1626"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<title>风行</title><link rel="icon" href="data:,">
+<meta name="description" content="骑着扫帚贴着海面、草坡和花田高速掠过。点开就能玩，手机电脑都行。"><meta property="og:type" content="website"><meta property="og:title" content="风行 · 贴地疾飞"><meta property="og:description" content="骑着扫帚贴着海面、草坡和花田高速掠过。点开就能玩，手机电脑都行。"><meta property="og:image" content="https://deathknowing-boop.github.io/broom-rush/cover.jpg"><meta property="og:url" content="https://deathknowing-boop.github.io/broom-rush/"><meta name="twitter:card" content="summary_large_image">
+<style>html, body { margin: 0; height: 100%; background: #0c1626; overflow: hidden; overscroll-behavior: none; -webkit-touch-callout: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; color: #fff; -webkit-font-smoothing: antialiased; user-select: none; }
+#gl { display: block; position: fixed; left: 0; top: 0; width: 100%; height: 100%; outline: none; cursor: crosshair; touch-action: none; }
+#boot { position: fixed; left: 0; right: 0; bottom: 12vh; text-align: center; font-size: 15px; letter-spacing: 0.3em; opacity: 0.85; pointer-events: none; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5); }
+#ui { position: fixed; inset: 0; pointer-events: none; transition: opacity 0.4s; }
+#hud { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s; }
+#hud.on { opacity: 1; }
+#hud .spd { position: absolute; right: 3.2vw; bottom: 3.6vh; font-family: Georgia, "Times New Roman", "Songti SC", serif; font-style: italic; font-size: clamp(34px, 4.6vw, 68px); line-height: 1; text-shadow: 0 2px 14px rgba(0, 30, 60, 0.45); letter-spacing: -0.02em; }
+#hud .spd small { font-family: "Avenir Next", "PingFang SC", sans-serif; font-style: normal; font-size: 0.19em; letter-spacing: 0.34em; margin-left: 0.7em; opacity: 0.85; vertical-align: 0.5em; }
+#hud .gust { position: absolute; left: 3.2vw; bottom: 4.2vh; width: clamp(140px, 15vw, 230px); }
+#hud .gust .bar { height: 3px; background: rgba(255, 255, 255, 0.28); border-radius: 2px; overflow: hidden; }
+#hud .gust .bar i { display: block; height: 100%; width: 50%; background: linear-gradient(90deg, #fff, #ffd9a8); border-radius: 2px; transition: width 0.12s linear; }
+#hud .gust small { display: block; margin-top: 9px; font-size: 11px; letter-spacing: 0.42em; opacity: 0.75; text-shadow: 0 1px 6px rgba(0, 30, 60, 0.5); }
+#hud.low .gust .bar i { background: linear-gradient(90deg, #fff, #ffb86b); box-shadow: 0 0 10px rgba(255, 190, 110, 0.9); }
+#hud.boost .spd { color: #fff3dc; }
+#title { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 13vh; box-sizing: border-box; text-align: center; transition: opacity 0.9s, transform 0.9s; text-shadow: 0 2px 22px rgba(0, 30, 70, 0.55); background: radial-gradient(ellipse at center, rgba(8, 30, 60, 0.12), rgba(8, 30, 60, 0.0) 60%); }
+#title.gone { opacity: 0; transform: scale(1.04); }
+#title h1 { margin: 0; font-family: "Songti SC", "STSong", "Noto Serif CJK SC", Georgia, serif; font-weight: 600; font-size: clamp(56px, 9vw, 132px); letter-spacing: 0.22em; text-indent: 0.22em; }
+#title p { margin: 0.6em 0 0; font-size: clamp(13px, 1.25vw, 19px); letter-spacing: 0.5em; text-indent: 0.5em; opacity: 0.92; }
+#title .go { position: absolute; top: 66vh; font-size: clamp(13px, 1.1vw, 17px); letter-spacing: 0.5em; text-indent: 0.5em; padding: 0.85em 2.2em; border: 1px solid rgba(255, 255, 255, 0.75); border-radius: 999px; animation: breathe 2.4s ease-in-out infinite; backdrop-filter: blur(3px); background: rgba(255, 255, 255, 0.08); }
+#title .keys { position: absolute; bottom: 5vh; font-size: 12px; line-height: 2.1; letter-spacing: 0.16em; opacity: 0.8; }
+#title .ver { position: absolute; right: 2.2vw; top: 2.4vh; font-size: 11px; letter-spacing: 0.22em; opacity: 0.55; }
+@keyframes breathe { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+#toast { position: absolute; left: 0; right: 0; top: 9vh; text-align: center; font-size: 14px; letter-spacing: 0.4em; opacity: 0; transition: opacity 0.5s; text-shadow: 0 1px 10px rgba(0, 30, 60, 0.6); }
+#toast.on { opacity: 0.95; }
+
+/* ---- 加载进度（index.html / build.mjs 的外壳里有 #bootbar）---- */
+#bootbar { position: fixed; left: 50%; bottom: calc(12vh - 18px); width: min(220px, 50vw); height: 2px; margin-left: min(-110px, -25vw); background: rgba(255, 255, 255, 0.18); border-radius: 1px; overflow: hidden; pointer-events: none; transition: opacity 0.4s; }
+#bootbar i { display: block; height: 100%; width: 0; background: rgba(255, 255, 255, 0.85); transition: width 0.35s ease-out; }
+#bootbar.done { opacity: 0; }
+#boot.err { color: #ffe0c8; letter-spacing: 0.12em; line-height: 1.9; padding: 0 6vw; font-size: 14px; white-space: pre-line; user-select: text; -webkit-user-select: text; pointer-events: auto; }
+
+/* ---- 触屏（#ui.touch）：左手虚拟摇杆、右下加速 / 减速按钮；避开刘海和手势条 ---- */
+#ui { --sr: max(4vw, calc(env(safe-area-inset-right, 0px) + 12px)); --sl: max(3.2vw, calc(env(safe-area-inset-left, 0px) + 10px)); --sb: max(5vh, calc(env(safe-area-inset-bottom, 0px) + 14px)); --st: max(2.6vh, calc(env(safe-area-inset-top, 0px) + 8px)); --bs: clamp(72px, 19vmin, 104px); --ss: clamp(52px, 13vmin, 74px); }
+#touch { display: none; position: absolute; inset: 0; }
+#ui.touch.run #touch { display: block; }
+.tbtn { position: absolute; bottom: var(--sb); box-sizing: border-box; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.72); background: rgba(255, 255, 255, 0.1); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; font-size: 13px; letter-spacing: 0.3em; text-indent: 0.3em; text-shadow: 0 1px 6px rgba(0, 30, 60, 0.5); pointer-events: auto; touch-action: none; -webkit-user-select: none; user-select: none; transition: background 0.12s, transform 0.12s; }
+.tbtn.down { background: rgba(255, 222, 180, 0.38); border-color: #ffe3c0; transform: scale(0.94); }
+#tBoost { right: var(--sr); width: var(--bs); height: var(--bs); }
+#tBrake { right: calc(var(--sr) + var(--bs) + 16px); width: var(--ss); height: var(--ss); font-size: 12px; }
+#tWave { right: calc(var(--sr) + var(--bs) * 0.15); bottom: calc(var(--sb) + var(--bs) + 14px); width: calc(var(--ss) * 0.8); height: calc(var(--ss) * 0.8); font-size: 11px; }
+#tStick { position: absolute; left: 0; top: 0; box-sizing: border-box; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.06); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+#tStick.on { opacity: 1; }
+#tStick i { width: 42%; height: 42%; border-radius: 50%; background: rgba(255, 255, 255, 0.55); box-shadow: 0 0 12px rgba(255, 255, 255, 0.4); }
+#ui.touch #hud .spd { bottom: auto; top: var(--st); right: var(--sr); font-size: clamp(30px, 4.6vw, 52px); }
+#ui.touch #hud .gust { left: auto; bottom: auto; right: var(--sr); top: calc(var(--st) + clamp(30px, 4.6vw, 52px) + 16px); width: clamp(110px, 15vw, 180px); }
+#tInfo { display: none; position: absolute; left: var(--sl); top: var(--st); width: 26px; height: 26px; box-sizing: border-box; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.6); font: italic 15px/24px Georgia, serif; text-align: center; opacity: 0.7; pointer-events: auto; touch-action: none; }
+#ui.touch.run #tInfo { display: block; }
+#ui.touch #toast { top: calc(var(--st) + clamp(30px, 4.6vw, 52px) + 54px); padding: 0 6vw; letter-spacing: 0.24em; line-height: 1.7; }
+
+/* ---- 帧率与设备信息 ---- */
+#diag { display: none; position: absolute; left: var(--sl); top: var(--st); max-width: min(92vw, 680px); padding: 6px 9px; border-radius: 6px; background: rgba(6, 16, 30, 0.55); font: 11px/1.55 Menlo, Consolas, monospace; letter-spacing: 0.02em; pointer-events: auto; }
+#ui.touch #diag { top: calc(var(--st) + 34px); }
+#diag.on { display: block; }
+#diagT { white-space: pre-wrap; word-break: break-all; }
+#diagC { margin-top: 5px; padding: 3px 12px; font: 12px "PingFang SC", sans-serif; letter-spacing: 0.2em; color: #fff; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px; touch-action: manipulation; }
+#diagX { display: none; width: 100%; height: 6.5em; margin-top: 6px; box-sizing: border-box; font: 10px/1.4 Menlo, monospace; color: #fff; background: rgba(0, 0, 0, 0.45); border: 0; border-radius: 4px; resize: none; user-select: text; -webkit-user-select: text; touch-action: auto; }
+#diagX.on { display: block; }
+
+/* 矮的横屏（手机横过来）：标题收小、上移，别压住角色 */
+@media (max-height: 500px) {
+  #title { padding-top: 7vh; }
+  #title h1 { font-size: clamp(40px, 15vh, 96px); }
+  #title p { font-size: 12px; margin-top: 0.4em; }
+  #title .go { top: 70vh; padding: 0.7em 2em; }
+  #title .keys { bottom: 3.5vh; }
+}
+
+/* ---- 玩法层：大字提示、连段、试炼、结算卡、旅程、指路 ---- */
+.pill { display: inline-block; padding: 0.35em 1.2em; border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 999px; font-size: 12px; letter-spacing: 0.24em; background: rgba(255, 255, 255, 0.1); pointer-events: auto; touch-action: manipulation; cursor: pointer; }
+#flash { position: absolute; left: 0; right: 0; top: 30vh; text-align: center; font-family: "Songti SC", "STSong", serif; font-weight: 600; font-size: clamp(30px, 4.4vw, 60px); letter-spacing: 0.4em; text-indent: 0.4em; opacity: 0; text-shadow: 0 2px 20px rgba(0, 30, 70, 0.6), 0 0 30px rgba(255, 210, 140, 0.5); }
+#flash.on { animation: flashIn 1.3s ease-out forwards; }
+#flash.bad { text-shadow: 0 2px 20px rgba(0, 30, 70, 0.6); color: #ffd8cc; }
+@keyframes flashIn { 0% { opacity: 0; transform: scale(1.25); letter-spacing: 0.9em; } 12% { opacity: 1; transform: scale(1); letter-spacing: 0.4em; } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
+#combo { position: absolute; left: 0; right: 0; bottom: 15vh; text-align: center; opacity: 0; transition: opacity 0.35s; text-shadow: 0 1px 10px rgba(0, 30, 60, 0.65); }
+#combo.on { opacity: 1; }
+#cbL { font-size: clamp(15px, 1.4vw, 20px); letter-spacing: 0.3em; }
+#cbL em { font-style: normal; font-family: Georgia, serif; margin-left: 0.6em; color: #ffe3b0; letter-spacing: 0.02em; }
+#cbL.pop { animation: pop 0.35s ease-out; }
+@keyframes pop { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
+#cbS { margin-top: 4px; font-size: 12px; letter-spacing: 0.4em; opacity: 0.85; }
+#cbS b { font-family: Georgia, serif; font-size: 1.5em; color: #ffd9a0; letter-spacing: 0.02em; }
+#combo.end #cbL { color: #ffe3b0; }
+#chal { position: absolute; left: 0; right: 0; top: 3vh; text-align: center; opacity: 0; transition: opacity 0.4s; text-shadow: 0 1px 3px rgba(0, 30, 60, 0.7), 0 1px 12px rgba(0, 30, 60, 0.6); }
+#chal.on { opacity: 1; }
+#chal b { display: block; font-family: "Songti SC", "STSong", serif; font-size: clamp(18px, 1.8vw, 26px); letter-spacing: 0.5em; text-indent: 0.5em; }
+#chal span { display: block; margin-top: 6px; font-family: Georgia, "PingFang SC", serif; font-size: clamp(15px, 1.4vw, 20px); letter-spacing: 0.1em; }
+#chal small { display: block; margin-top: 5px; font-size: 11px; letter-spacing: 0.24em; opacity: 0.7; }
+#card { position: absolute; left: 50%; top: 18vh; transform: translate(-50%, 10px); min-width: min(320px, 80vw); padding: 18px 28px 16px; box-sizing: border-box; text-align: center; border-radius: 14px; background: linear-gradient(180deg, rgba(10, 28, 52, 0.62), rgba(10, 28, 52, 0.42)); border: 1px solid rgba(255, 255, 255, 0.25); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; transition: opacity 0.4s, transform 0.4s; pointer-events: none; }
+#card.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+#card small { font-size: 11px; letter-spacing: 0.4em; opacity: 0.7; }
+#card b { display: block; margin-top: 4px; font-family: "Songti SC", "STSong", serif; font-size: 22px; letter-spacing: 0.4em; text-indent: 0.4em; }
+#cdV { margin-top: 8px; font-family: Georgia, serif; font-style: italic; font-size: 38px; }
+#cdM { margin-top: 2px; font-size: 15px; letter-spacing: 0.5em; text-indent: 0.5em; }
+#cdM.m1 { color: #f0b48a; } #cdM.m2 { color: #e4ecf5; } #cdM.m3 { color: #ffd76a; text-shadow: 0 0 14px rgba(255, 210, 100, 0.8); } #cdM.m0 { opacity: 0.7; }
+#cdX, #cdB { margin-top: 6px; font-size: 12px; letter-spacing: 0.14em; opacity: 0.82; }
+#cdR { margin-top: 12px; }
+#goalT { position: absolute; left: 0; right: 0; top: 16vh; text-align: center; font-size: 15px; letter-spacing: 0.24em; line-height: 1.8; opacity: 0; transition: opacity 0.5s; text-shadow: 0 1px 10px rgba(0, 30, 60, 0.7); }
+#goalT small { display: block; font-size: 11px; letter-spacing: 0.4em; opacity: 0.75; }
+#goalT.on { opacity: 1; }
+#goalT.lv { color: #ffe7b8; font-size: 18px; }
+#goalT.lv span { font-size: 13px; color: #fff; }
+#mark { position: absolute; left: 0; top: 0; opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+#mark.on { opacity: 0.92; }
+#mark i { position: absolute; left: -7px; top: -22px; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 12px solid #ffd27a; transform-origin: 7px 22px; filter: drop-shadow(0 1px 4px rgba(0, 20, 50, 0.6)); }
+#mark:not(.edge) i { transform: rotate(180deg); }
+#mark span { position: absolute; left: 0; top: 2px; transform: translateX(-50%); white-space: nowrap; font-size: 12px; letter-spacing: 0.2em; text-shadow: 0 1px 8px rgba(0, 30, 60, 0.8); }
+#journey { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(6, 18, 36, 0.35); pointer-events: auto; }
+#journey.on { display: flex; }
+#journey .jin { width: min(520px, 90vw); max-height: 86vh; overflow: auto; padding: 22px 26px; box-sizing: border-box; border-radius: 16px; background: linear-gradient(180deg, rgba(10, 28, 52, 0.78), rgba(10, 28, 52, 0.6)); border: 1px solid rgba(255, 255, 255, 0.22); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); text-shadow: 0 1px 6px rgba(0, 20, 40, 0.5); }
+#journey .jh { display: flex; align-items: baseline; gap: 14px; }
+#journey .jh b { font-family: "Songti SC", "STSong", serif; font-size: 24px; letter-spacing: 0.4em; }
+#journey .jh #jLv { flex: 1; font-size: 13px; letter-spacing: 0.2em; opacity: 0.85; }
+#journey ul { list-style: none; margin: 12px 0 4px; padding: 0; }
+#jG li { position: relative; padding: 7px 0 7px 28px; font-size: 14px; letter-spacing: 0.08em; line-height: 1.5; }
+#jG li i { position: absolute; left: 2px; top: 9px; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.75); box-sizing: border-box; }
+#jG li.ok { opacity: 0.6; text-decoration: line-through; }
+#jG li.ok i { background: #ffd27a; border-color: #ffd27a; }
+#journey .js { margin-top: 16px; font-size: 12px; letter-spacing: 0.4em; opacity: 0.75; border-top: 1px solid rgba(255, 255, 255, 0.18); padding-top: 12px; }
+#journey .js small { margin-left: 1em; letter-spacing: 0.15em; opacity: 0.7; }
+#jC li { display: flex; align-items: center; gap: 10px; padding: 8px 4px; font-size: 14px; letter-spacing: 0.1em; cursor: pointer; border-radius: 8px; }
+#jC li:hover { background: rgba(255, 255, 255, 0.08); }
+#jC .dot { width: 9px; height: 9px; border-radius: 50%; }
+#jC b { flex: 1; font-weight: 500; }
+#jC .md { width: 2em; text-align: center; color: #ffe0a0; }
+#jC .bs { min-width: 6em; text-align: right; font-family: Georgia, serif; font-size: 13px; opacity: 0.8; }
+#jT { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+#jT .tr { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.3); font-size: 12px; letter-spacing: 0.1em; cursor: pointer; }
+#jT .tr i { width: 10px; height: 10px; border-radius: 50%; }
+#jT .tr.on { border-color: #ffd27a; background: rgba(255, 210, 122, 0.18); }
+#jT .tr.lock { opacity: 0.35; cursor: default; }
+#tJ { display: none; position: absolute; left: calc(var(--sl) + 36px); top: var(--st); height: 26px; padding: 0 12px; box-sizing: border-box; border-radius: 13px; border: 1px solid rgba(255, 255, 255, 0.6); font-size: 12px; line-height: 24px; letter-spacing: 0.2em; opacity: 0.85; pointer-events: auto; touch-action: none; }
+#ui.run #tJ { display: block; }
+#ui:not(.touch) #tJ { left: var(--sl); }
+#ui.touch #chal { top: calc(var(--st) + 34px); }
+#ui.touch #combo { bottom: calc(var(--sb) + var(--bs) + 20px); }
+#journey .jrow { display: flex; align-items: baseline; gap: 12px; margin-top: 10px; font-size: 13px; letter-spacing: 0.2em; }
+#journey .jrow > span { flex: none; width: 3em; opacity: 0.8; }
+#journey .jrow > div { display: flex; flex-wrap: wrap; gap: 8px; }
+#journey .jrow .tr { display: inline-flex; padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.3); font-size: 12px; letter-spacing: 0.1em; cursor: pointer; }
+#journey .jrow .tr.on { border-color: #ffd27a; background: rgba(255, 210, 122, 0.18); }
+#journey .jrow .tr.lock { opacity: 0.4; cursor: default; }
+#tags { position: absolute; inset: 0; pointer-events: none; }
+#tags span { position: absolute; left: 0; top: 0; padding: 1px 8px; font-size: 11px; letter-spacing: 0.2em; border-bottom: 2px solid #fff; text-shadow: 0 1px 6px rgba(0, 30, 60, 0.8); white-space: nowrap; }
+#draft { position: absolute; right: 3.2vw; bottom: calc(3.6vh + clamp(34px, 4.6vw, 68px) + 10px); font-size: 12px; letter-spacing: 0.4em; color: #bfe8ff; opacity: 0; transition: opacity 0.25s; text-shadow: 0 0 10px rgba(120, 200, 255, 0.9); }
+#draft.on { opacity: 1; }
+#ui.touch #draft { bottom: auto; top: calc(var(--st) + clamp(30px, 4.6vw, 52px) + 34px); }
+#edit { position: absolute; left: 50%; bottom: 22vh; transform: translateX(-50%); padding: 10px 18px; border-radius: 12px; background: rgba(10, 28, 52, 0.45); border: 1px solid rgba(190, 255, 170, 0.5); text-align: center; display: none; text-shadow: 0 1px 6px rgba(0, 20, 40, 0.6); pointer-events: auto; }
+#edit.on { display: block; }
+#edit b { display: block; font-family: "Songti SC", serif; letter-spacing: 0.5em; color: #d8ffc8; }
+#edit span#edN { display: block; margin-top: 4px; font-size: 14px; letter-spacing: 0.15em; }
+#edit small { display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.15em; opacity: 0.75; }
+#edit .ebtn { display: none; gap: 10px; justify-content: center; margin-top: 8px; }
+#ui.touch #edit .ebtn { display: flex; }
+#ui.touch #edit small { display: none; }
+#ui.touch #edit #edP { padding: 0.7em 1.8em; font-size: 14px; border-color: #d8ffc8; }
+#jC .pill.sh { margin-right: -2px; }
+#tags span q { display: block; position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -6px); padding: 4px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.92); color: #3a2a20; font-size: 13px; letter-spacing: 0.05em; text-shadow: none; white-space: nowrap; quotes: none; box-shadow: 0 2px 8px rgba(0, 20, 40, 0.25); animation: pop 0.3s ease-out; }
+#tags span q::after { content: ''; position: absolute; left: 50%; top: 100%; margin-left: -5px; border: 5px solid transparent; border-top-color: rgba(255, 255, 255, 0.92); }
+#tags span em { font-style: normal; margin-left: 0.5em; color: #ffe08a; }
+#board { position: absolute; right: 3vw; top: 12vh; min-width: 180px; padding: 12px 16px; border-radius: 12px; background: rgba(10, 28, 52, 0.55); border: 1px solid rgba(255, 255, 255, 0.25); opacity: 0; transition: opacity 0.4s; text-shadow: 0 1px 6px rgba(0, 20, 40, 0.6); }
+#board.on { opacity: 1; }
+#board b { display: block; font-family: "Songti SC", serif; font-size: 15px; letter-spacing: 0.3em; margin-bottom: 6px; }
+#board ol { margin: 0; padding-left: 1.4em; font-size: 13px; line-height: 1.8; }
+#board li span { display: inline-block; min-width: 5em; }
+#board li i { font-style: normal; font-family: Georgia, serif; color: #ffe08a; }
+#board li.me { color: #bfffd0; }
+#board small { display: block; margin-top: 6px; font-size: 11px; opacity: 0.7; letter-spacing: 0.15em; }
+#jT, #journey .jrow .tr.hot { }
+#journey .jrow .tr.hot { border-color: #ffb3c6; background: rgba(255, 150, 180, 0.18); }
+#ui.touch #board { top: auto; bottom: calc(var(--sb) + var(--bs) + 70px); right: var(--sr); }
+</style>
+</head><body><canvas id="gl" tabindex="0"></canvas><div id="ui"></div><div id="boot">正在连接…</div><div id="bootbar"><i></i></div>
+<script>(function(){
+var T=window.__T={t0:Date.now(),dlFrac:0,bootFrac:0};
+var B=document.getElementById('boot'),bar=document.getElementById('bootbar'),bi=bar&&bar.firstElementChild;
+function fail(t){T.failed=1;if(B){B.style.display='';B.className='err';B.textContent=t+'\n\n'+navigator.userAgent;}if(bar)bar.style.display='none';}
+window.addEventListener('error',function(e){if(B&&B.style.display!=='none'&&!T.ok)fail('启动失败：'+(e.message||e));});
+var ok=false;try{var c=document.createElement('canvas'),g=c.getContext('webgl2');ok=!!g;var x=g&&g.getExtension('WEBGL_lose_context');if(x)x.loseContext();}catch(e){}
+if(!ok){fail('这个浏览器不支持 WebGL2，换 Chrome、Safari 或 QQ 浏览器的新版本试试');return;}
+var F=[{u:'g.0fe2614c.js',n:1108399,t:'text'},{u:'lan1.e97c2c8c.glb',n:1862396,t:'arraybuffer'}],got=[0,0],tot=F[0].n+F[1].n,slow=0,mb=function(v){return (v/1048576).toFixed(1);};
+// 进度条：前一半是下载，后一半是生成世界（main.js 的 status() 写 T.bootFrac 再调 T.paint）
+T.paint=function(){if(T.failed)return;var g=got[0]+got[1],p=Math.min(99,Math.floor(g/tot*100));T.dlFrac=g/tot;
+if(bi)bi.style.width=Math.round(50*Math.min(1,T.dlFrac)+50*T.bootFrac)+'%';
+if(!T.started){if(B)B.textContent='正在下载 '+p+'%（'+mb(g)+' / '+mb(tot)+' MB）'+(slow?'\n网络有点慢，再等等…':'');}
+else if(T.waitModel&&got[1]<F[1].n){if(B)B.textContent='正在请岚上扫帚…（角色下载 '+Math.floor(got[1]/F[1].n*100)+'%）';}};
+setTimeout(function(){if(got[0]+got[1]<tot){slow=1;T.paint();}},12000);
+window.__ASSET_URL={song:'song1.dab554b5.mp3'};
+var modelRes,modelRej;window.__ASSETS_P={lan:new Promise(function(a,b){modelRes=a;modelRej=b;})};
+function get(i,tries,cb){var f=F[i],x=new XMLHttpRequest();x.open('GET',f.u,true);x.responseType=f.t;x.timeout=240000;
+x.onprogress=function(e){got[i]=e.lengthComputable&&e.total?e.loaded/e.total*f.n:Math.min(e.loaded,f.n);T.paint();};
+x.onload=function(){if(x.status>=200&&x.status<300&&x.response){got[i]=f.n;T.paint();cb(x.response);}else retry('HTTP '+x.status);};
+x.onerror=function(){retry('网络错误');};x.ontimeout=function(){retry('超时');};
+function retry(why){if(tries<2){got[i]=0;get(i,tries+1,cb);}else if(i===0)fail('下载失败（'+why+'），刷新一下再试');else modelRej(new Error('角色下载失败：'+why));}
+x.send();}
+T.paint();
+// 脚本一到就开始生成世界；角色模型（更大）还在下载，等用到它时再等（window.__ASSETS_P）
+get(0,0,function(txt){T.dl=Date.now();T.started=1;var s=document.createElement('script');s.type='module';s.textContent=txt;document.body.appendChild(s);});
+get(1,0,function(buf){T.dlModel=Date.now();modelRes(buf);});
+})();</script>
+</body></html>
