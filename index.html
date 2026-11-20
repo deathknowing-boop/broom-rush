@@ -181,7 +181,7 @@ function fail(t){T.failed=1;if(B){B.style.display='';B.className='err';B.textCon
 window.addEventListener('error',function(e){if(B&&B.style.display!=='none'&&!T.ok)fail('启动失败：'+(e.message||e));});
 var ok=false;try{var c=document.createElement('canvas'),g=c.getContext('webgl2');ok=!!g;var x=g&&g.getExtension('WEBGL_lose_context');if(x)x.loseContext();}catch(e){}
 if(!ok){fail('这个浏览器不支持 WebGL2，换 Chrome、Safari 或 QQ 浏览器的新版本试试');return;}
-var F=[{u:'g.c12596ff.js',n:1067823,t:'text'},{u:'lan1.e97c2c8c.glb',n:1862396,t:'arraybuffer'}],got=[0,0],tot=F[0].n+F[1].n,slow=0,mb=function(v){return (v/1048576).toFixed(1);};
+var F=[{u:'g.cc369fbf.js',n:1139649,t:'text'},{u:'lan1.e97c2c8c.glb',n:1862396,t:'arraybuffer'}],got=[0,0],tot=F[0].n+F[1].n,slow=0,mb=function(v){return (v/1048576).toFixed(1);};
 // 进度条：前一半是下载，后一半是生成世界（main.js 的 status() 写 T.bootFrac 再调 T.paint）
 T.paint=function(){if(T.failed)return;var g=got[0]+got[1],p=Math.min(99,Math.floor(g/tot*100));T.dlFrac=g/tot;
 if(bi)bi.style.width=Math.round(50*Math.min(1,T.dlFrac)+50*T.bootFrac)+'%';
