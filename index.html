@@ -132,9 +132,24 @@
 #jT .tr i { width: 10px; height: 10px; border-radius: 50%; }
 #jT .tr.on { border-color: #ffd27a; background: rgba(255, 210, 122, 0.18); }
 #jT .tr.lock { opacity: 0.35; cursor: default; }
-#tJ { display: none; position: absolute; left: calc(var(--sl) + 36px); top: var(--st); height: 26px; padding: 0 12px; box-sizing: border-box; border-radius: 13px; border: 1px solid rgba(255, 255, 255, 0.6); font-size: 12px; line-height: 24px; letter-spacing: 0.2em; opacity: 0.85; pointer-events: auto; touch-action: none; }
-#ui.run #tJ { display: block; }
+#tJ { display: none; position: absolute; left: calc(var(--sl) + 36px); top: var(--st); height: 26px; padding: 0 12px; box-sizing: border-box; border-radius: 13px; border: 1px solid rgba(255, 255, 255, 0.6); font-size: 12px; line-height: 24px; letter-spacing: 0.2em; opacity: 0.85; pointer-events: auto; touch-action: none; cursor: pointer; }
+#tRace { display: none; position: absolute; left: calc(var(--sl) + 100px); top: var(--st); height: 26px; padding: 0 12px; box-sizing: border-box; border-radius: 13px; border: 1px solid rgba(150, 232, 255, 0.86); background: rgba(40, 165, 220, 0.22); color: #eefcff; font-size: 12px; line-height: 24px; letter-spacing: 0.2em; opacity: 0.94; pointer-events: auto; touch-action: none; cursor: pointer; }
+#tParty { display: none; position: absolute; left: calc(var(--sl) + 164px); top: var(--st); height: 26px; padding: 0 12px; box-sizing: border-box; border-radius: 13px; border: 1px solid rgba(255, 195, 215, 0.78); background: rgba(255, 145, 185, 0.16); color: #fff2f6; font-size: 12px; line-height: 24px; letter-spacing: 0.2em; opacity: 0.92; pointer-events: auto; touch-action: none; cursor: pointer; }
+#ui.run #tJ, #ui.run #tRace, #ui.run #tParty { display: block; }
 #ui:not(.touch) #tJ { left: var(--sl); }
+#ui:not(.touch) #tRace { left: calc(var(--sl) + 64px); }
+#ui:not(.touch) #tParty { left: calc(var(--sl) + 128px); }
+#ui.zfon #tRace, #ui.zfon #tParty { display: none; }
+#title .partygo { position: absolute; top: calc(66vh + 126px); font-size: clamp(12px, 1vw, 15px); letter-spacing: 0.38em; text-indent: 0.38em; padding: 0.58em 1.7em; border: 1px solid rgba(255, 205, 224, 0.92); border-radius: 999px; color: #ffeef4; background: rgba(140, 32, 74, 0.28); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); pointer-events: auto; cursor: pointer; transition: transform 0.14s, background 0.14s; }
+#title .partygo:hover { transform: translateY(-2px); background: rgba(140, 36, 76, 0.34); }
+#title .partygo small { display: block; font-size: 10px; letter-spacing: 0.22em; opacity: 0.84; margin-top: 2px; }
+@media (max-height: 820px) {
+  #title .partygo { top: calc(66vh + 62px); left: calc(50% + 145px); padding: 0.55em 1.3em; letter-spacing: 0.28em; text-indent: 0.28em; }
+}
+@media (max-height: 540px) {
+  #title .partygo { top: 70vh; left: calc(50% + 112px); padding: 0.55em 1.2em; }
+  #title .partygo small { display: none; }
+}
 #ui.touch #chal { top: calc(var(--st) + 34px); }
 #ui.touch #combo { bottom: calc(var(--sb) + var(--bs) + 20px); }
 #journey .jrow { display: flex; align-items: baseline; gap: 12px; margin-top: 10px; font-size: 13px; letter-spacing: 0.2em; }
@@ -172,6 +187,37 @@
 #jT, #journey .jrow .tr.hot { }
 #journey .jrow .tr.hot { border-color: #ffb3c6; background: rgba(255, 150, 180, 0.18); }
 #ui.touch #board { top: auto; bottom: calc(var(--sb) + var(--bs) + 70px); right: var(--sr); }
+/* ---- 马车风趣味竞速 HUD（仅竞速中显示） ---- */
+#raceHud { position: absolute; inset: 0; pointer-events: none; display: none; }
+#raceHud.on { display: block; }
+#rcRank { position: absolute; left: 3.2vw; top: calc(var(--st) + 40px); display: flex; align-items: baseline; gap: 6px; padding: 6px 14px 8px; border-radius: 14px; background: rgba(10, 28, 52, 0.48); border: 1px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); text-shadow: 0 2px 10px rgba(0, 20, 45, 0.7); }
+#rcRank.pop { animation: pop 0.28s ease-out; }
+#rcPos { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: clamp(30px, 3.6vw, 48px); line-height: 1; color: #fff; }
+#rcRank.r1 #rcPos { color: #ffe066; text-shadow: 0 0 18px rgba(255, 210, 70, 0.85); }
+#rcRank.r2 #rcPos { color: #d8f0ff; }
+#rcRank.r3 #rcPos { color: #ffba82; }
+#rcTot { font-size: 13px; opacity: 0.78; letter-spacing: 0.08em; }
+#rcProg { font-style: normal; margin-left: 8px; padding-left: 8px; border-left: 1px solid rgba(255, 255, 255, 0.25); font-size: 12px; letter-spacing: 0.12em; color: #cdeeff; }
+#rcItem { position: absolute; right: 3.2vw; top: calc(var(--st) + 40px); display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 16px; background: rgba(10, 28, 52, 0.56); border: 1.5px solid rgba(255, 255, 255, 0.34); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); pointer-events: auto; cursor: pointer; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; }
+#rcItem.roll { border-color: #ffe27a; box-shadow: 0 0 18px rgba(255, 220, 100, 0.55); transform: scale(1.04); }
+#rcItem.has { border-color: #7ee8ff; box-shadow: 0 0 20px rgba(90, 220, 255, 0.55); background: rgba(12, 46, 78, 0.72); }
+#rcIcon { font-style: normal; font-size: 26px; line-height: 1; min-width: 28px; text-align: center; }
+#rcIname { font-size: 13px; letter-spacing: 0.15em; color: #fff; white-space: nowrap; }
+#rcItem kbd { font-family: inherit; font-size: 11px; padding: 2px 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.38); color: #ffe9a8; }
+#rcWarn { position: absolute; left: 50%; top: 18vh; transform: translateX(-50%); padding: 6px 16px; border-radius: 999px; background: rgba(215, 42, 68, 0.82); border: 1px solid rgba(255, 210, 210, 0.8); font-size: 13px; letter-spacing: 0.22em; color: #fff; opacity: 0; transition: opacity 0.2s; box-shadow: 0 4px 18px rgba(220, 30, 60, 0.55); }
+#rcWarn.on { opacity: 1; }
+#rcCd { position: absolute; left: 50%; top: 34vh; transform: translate(-50%, -50%); text-align: center; display: none; text-shadow: 0 4px 24px rgba(0, 20, 50, 0.85); }
+#rcCd.on { display: block; }
+#rcCdN { display: block; font-family: Georgia, serif; font-style: italic; font-size: clamp(64px, 10vw, 118px); color: #ffe47a; line-height: 1; }
+#rcCd small { display: block; margin-top: 8px; font-size: 13px; letter-spacing: 0.22em; color: #eefaff; }
+#rcDrift { position: absolute; left: 50%; bottom: 11vh; transform: translateX(-50%); width: 170px; text-align: center; opacity: 0; transition: opacity 0.15s; }
+#rcDrift.on { opacity: 1; }
+#rcDrift .dbar { height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.25); overflow: hidden; }
+#rcDF { display: block; height: 100%; width: 0; background: #aef4ff; transition: width 0.05s linear; }
+#rcDrift.lv1 #rcDF { background: linear-gradient(90deg, #48d8ff, #9ef7ff); box-shadow: 0 0 10px #48d8ff; }
+#rcDrift.lv2 #rcDF { background: linear-gradient(90deg, #ff9922, #ffe46b); box-shadow: 0 0 12px #ffae33; }
+#rcDT { display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.2em; color: #eefaff; text-shadow: 0 1px 6px rgba(0, 20, 45, 0.7); }
+#ui.touch #rcItem kbd { display: none; }
 </style>
 </head><body><canvas id="gl" tabindex="0"></canvas><div id="ui"></div><div id="boot">正在连接…</div><div id="bootbar"><i></i></div>
 <script>(function(){
@@ -181,7 +227,7 @@ function fail(t){T.failed=1;if(B){B.style.display='';B.className='err';B.textCon
 window.addEventListener('error',function(e){if(B&&B.style.display!=='none'&&!T.ok)fail('启动失败：'+(e.message||e));});
 var ok=false;try{var c=document.createElement('canvas'),g=c.getContext('webgl2');ok=!!g;var x=g&&g.getExtension('WEBGL_lose_context');if(x)x.loseContext();}catch(e){}
 if(!ok){fail('这个浏览器不支持 WebGL2，换 Chrome、Safari 或 QQ 浏览器的新版本试试');return;}
-var F=[{u:'g.cc369fbf.js',n:1139649,t:'text'},{u:'lan1.e97c2c8c.glb',n:1862396,t:'arraybuffer'}],got=[0,0],tot=F[0].n+F[1].n,slow=0,mb=function(v){return (v/1048576).toFixed(1);};
+var F=[{u:'g.24ac2342.js',n:1190737,t:'text'},{u:'lan1.e97c2c8c.glb',n:1862396,t:'arraybuffer'}],got=[0,0],tot=F[0].n+F[1].n,slow=0,mb=function(v){return (v/1048576).toFixed(1);};
 // 进度条：前一半是下载，后一半是生成世界（main.js 的 status() 写 T.bootFrac 再调 T.paint）
 T.paint=function(){if(T.failed)return;var g=got[0]+got[1],p=Math.min(99,Math.floor(g/tot*100));T.dlFrac=g/tot;
 if(bi)bi.style.width=Math.round(50*Math.min(1,T.dlFrac)+50*T.bootFrac)+'%';
